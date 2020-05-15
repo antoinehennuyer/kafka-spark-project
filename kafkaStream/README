@@ -1,0 +1,9 @@
+HOW TO USE THE SAMPLE:
+
+1) First donwload this zip file : https://www.apache.org/dyn/closer.cgi?path=/kafka/2.5.0/kafka_2.12-2.5.0.tgz
+2) Unzip it wherever you want (except in the repo)
+3) Launch this cmd (start server zookeeper): "bin/zookeeper-server-start.sh config/zookeeper.properties"
+4) Launch this cmd (start the server kafka): "bin/kafka-server-start.sh ./config/server.properties"
+5) Launch this cmd (create new topic): "bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic test"
+6) Launch this cmd (create the consumer): "bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic test --from-beginning" 
+7) Go to the project kafkaStream and run the project
