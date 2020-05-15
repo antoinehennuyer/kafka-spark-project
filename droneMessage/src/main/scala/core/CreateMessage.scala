@@ -15,6 +15,14 @@ object CreateMessage {
   var alert = 0
   var message = 0
 
+  def CreateDronesMessages(nbrDrone: Int, nbrMessage: Int): Unit = {
+    val res = Stream.continually(Random.alphanumeric.filter(_.isDigit).take(5).mkString).take(nbrDrone)
+    res.foreach(elt => {
+      RandomMessage(nbrMessage, elt) // TODO: Make it async
+    })
+
+  }
+
   def RandomMessage(nbr: Int, idDrone: String): Any = {
     nbr match {
       case 0 => {
