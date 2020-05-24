@@ -20,7 +20,7 @@ object main {
     streamConfig.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
     streamConfig.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass.getName)
     streamConfig.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass.getName)
-    streamConfig.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG,"earliest")
+    streamConfig.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG,"latest")
 
     val builder = new StreamsBuilder()
     val text = builder.stream[String,String]("general")
@@ -43,7 +43,7 @@ object main {
 
     val record = new ProducerRecord[String,String]("general","key",JSON.toString())
     Prod.send(record)
-    val rec2 = new ProducerRecord[String,String]("general","key",JSON2.toString())
+    val rec2 = new ProducerRecord[String,String]("general","key2",JSON2.toString())
     Prod.send(rec2)
     
     Prod.close()
