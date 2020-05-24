@@ -23,11 +23,11 @@ object main {
     streamConfig.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG,"earliest")
 
     val builder = new StreamsBuilder()
-    val text = builder.stream[String,String]("test")
+    val text = builder.stream[String,String]("general")
     val alert = text.filter((x,v) => Json.parse(v).\("ID").as[JsString].value == "12") // TODO Modify the condition
     //val uppercase = text.mapValues(x => Json.parse(x)).mapValues(x => x.\("ID"))
     //print(uppercase.mapValues(x => print(x)))
-    alert.to("changed") // TODO Change to alert topic
+    alert.to("alert") // TODO Change to alert topic
     val streams = new KafkaStreams(builder.build(), streamConfig)
     streams.start()
 
@@ -39,7 +39,7 @@ object main {
     props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer])
     val Prod : KafkaProducer[String,String] = new KafkaProducer[String,String](props)
     val JSON = Json.obj("ID"->JsString("12"),"location"->JsString("43 rue de new york"))
-    val record = new ProducerRecord[String,String]("test","salut",JSON.toString())
+    val record = new ProducerRecord[String,String]("general","key",JSON.toString())
     Prod.send(record)
     Prod.close()
 
