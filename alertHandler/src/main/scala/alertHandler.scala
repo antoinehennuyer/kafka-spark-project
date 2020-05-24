@@ -5,7 +5,7 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.StringSerializer
-
+import play.api.libs.json._
 import scala.collection.JavaConverters._
 
 object alertHandler {
@@ -37,10 +37,11 @@ object alertHandler {
     //TEST CONSUMER
     val records = consumer.poll(10000).asScala
 
-    for (data <- records.iterator) {
-      println("Data", data.value())
-      val record = new ProducerRecord[String,String]("general", data.key(), data.value() + " caca")
-      producer.send(record)
+    records.foreach { record =>
+      println("offset", record.offset())
+      //val msg_modif = Json.obj("ID"->JsString(Json.parse(record.value()).\("ID").as[JsString].value),"location"->JsString("Changed by alert topic"))
+      //val rec_to_send = new ProducerRecord[String,String]("general",record.key(),Json.obj("ID"->JsString(Json.parse(record.value()).\("ID").as[JsString].value),"location"->JsString("Changed by alert topic"))
+      producer.send(new ProducerRecord[String,String]("general",record.key(),Json.obj("ID"->JsString(Json.parse(record.value()).\("ID").as[JsString].value),"location"->JsString("Changed by alert topic")).toString()))
     }
     producer.close()
 

@@ -39,8 +39,13 @@ object main {
     props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer])
     val Prod : KafkaProducer[String,String] = new KafkaProducer[String,String](props)
     val JSON = Json.obj("ID"->JsString("12"),"location"->JsString("43 rue de new york"))
+    val JSON2 = Json.obj("ID"->JsString("51"),"location"->JsString("1 rue de France"))
+
     val record = new ProducerRecord[String,String]("general","key",JSON.toString())
     Prod.send(record)
+    val rec2 = new ProducerRecord[String,String]("general","key",JSON2.toString())
+    Prod.send(rec2)
+    
     Prod.close()
 
     streams.close()
