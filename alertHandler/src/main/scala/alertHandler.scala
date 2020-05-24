@@ -17,6 +17,7 @@ object alertHandler {
     consumerConfiguration.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
     consumerConfiguration.put("auto.offset.reset", "latest")
     consumerConfiguration.put("group.id", "consumer-group")
+    consumerConfiguration.put("max.poll.records", 100)
 
     val consumer: KafkaConsumer[String, String] = new KafkaConsumer[String, String](consumerConfiguration)
     consumer.subscribe(util.Arrays.asList("alert"))
@@ -34,18 +35,17 @@ object alertHandler {
   def main(args: Array[String]): Unit = {
     val consumer: KafkaConsumer[String, String] = initAlertConsumer()
     val producer: KafkaProducer[String,String] = initAlertProducer()
-    //TEST CONSUMER
-    val records = consumer.poll(10000).asScala
-
-    records.foreach { record =>
-      println("offset", record.offset())
-      //val msg_modif = Json.obj("ID"->JsString(Json.parse(record.value()).\("ID").as[JsString].value),"location"->JsString("Changed by alert topic"))
-      //val rec_to_send = new ProducerRecord[String,String]("general",record.key(),Json.obj("ID"->JsString(Json.parse(record.value()).\("ID").as[JsString].value),"location"->JsString("Changed by alert topic"))
-      producer.send(new ProducerRecord[String,String]("general",record.key(),Json.obj("ID"->JsString(Json.parse(record.value()).\("ID").as[JsString].value),"location"->JsString("Changed by alert topic")).toString()))
+    while (true) {
+      val records = consumer.poll(10000).asScala
+      records.foreach { record =>
+        println("offset", record.offset())
+        producer.send(new ProducerRecord[String,String]("general",record.key(),
+          Json.obj("ID"->JsString(Json.parse(record.value()).\("ID").as[JsString].value),
+            "location"->JsString("Changed by alert topic")).toString()))
+      }
     }
     producer.close()
-
-
+    consumer.close()
     //COMMENT KILL MESSAGE
     // COMMENT VIDER CLOSE
   }
