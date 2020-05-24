@@ -33,18 +33,16 @@ object alertHandler {
 
   def main(args: Array[String]): Unit = {
     val consumer: KafkaConsumer[String, String] = initAlertConsumer()
-
+    val producer: KafkaProducer[String,String] = initAlertProducer()
     //TEST CONSUMER
     val records = consumer.poll(10000).asScala
 
     for (data <- records.iterator) {
       println("Data", data.value())
+      val record = new ProducerRecord[String,String]("general", data.key(), data.value() + " caca")
+      producer.send(record)
     }
-
-    /*val producer: KafkaProducer[String,String] = initAlertProducer()
-    val record = new ProducerRecord[String,String]("alert","key","value")
-    producer.send(record)
-    producer.close()*/
+    producer.close()
 
 
     //COMMENT KILL MESSAGE
