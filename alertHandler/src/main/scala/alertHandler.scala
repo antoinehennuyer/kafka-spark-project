@@ -45,5 +45,9 @@ object alertHandler {
     val record = new ProducerRecord[String,String]("alert","key","value")
     producer.send(record)
     producer.close()*/
+
+
+    //COMMENT KILL MESSAGE
+    // COMMENT VIDER CLOSE
   }
 }
