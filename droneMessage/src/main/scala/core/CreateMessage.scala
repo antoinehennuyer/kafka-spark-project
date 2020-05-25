@@ -21,17 +21,32 @@ object CreateMessage {
   var alert = 0
   var message = 0
 
+  var addressList = List(
+    "29 Main Ave. Ocean Springs, MS 39564",
+    "8653 Ridge Court, Oceanside, NY 11572",
+    "8205 Greenrose Ave, Downers Grove, IL 60515",
+    "8945 W. Ridge St, East Hartford, CT 06118",
+    "28 Mayfield Street, West Hempstead, NY 11552",
+    "784 Wild Rose Drive, Mcdonough, GA 30252"
+  )
+
+
+
   def CreateDronesMessages(nbrDrone: Int, nbrMessage: Int): Any = {
     val prod = initiateProducer()
-    val res = Stream.continually(Random.alphanumeric.filter(_.isDigit).take(5).mkString).take(nbrDrone)
-    res.foreach(elt => {
-      RandomMessage(nbrMessage, elt, prod) // TODO: Make it async
-    })
+    val listDrone = Stream.continually(Random.alphanumeric.filter(_.isDigit).take(5).mkString).take(nbrDrone)
+
+
+    RandomMessage(nbrMessage, listDrone, prod)
+
+//    listDrone.par.foreach(elt => {
+//      RandomMessage2(nbrMessage, elt, prod) // TODO: Make it async
+//    })
     prod.close()
 
   }
 
-  def RandomMessage(nbr: Int, idDrone: String, prod: KafkaProducer[String,String]): Any = {
+  def RandomMessage(nbr: Int, idsDrone: Stream[String], prod: KafkaProducer[String,String]): Any = {
     nbr match {
       case 0 => {
         println("violation: ", violation)
@@ -40,24 +55,58 @@ object CreateMessage {
       }
       case _ => {
         val date = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(LocalDateTime.now())
-//        Thread.sleep(5000)
         val randomType = nextInt(100)
+        val idDrone = idsDrone(nextInt(idsDrone.length))
+        val loc = addressList(nextInt(addressList.length))
         if (randomType < 25) {
           val typeAlert = nextInt(100)
           if (typeAlert == 0) {
-            MessageGenerate(idDrone, "Paris", date, "alert", prod)
+            MessageGenerate(idDrone, loc, date, "alert", prod)
             alert += 1
           }
           else {
-            MessageGenerate(idDrone, "Paris", date, "violation", prod)
+            MessageGenerate(idDrone, loc, date, "violation", prod)
             violation += 1
           }
         }
         else {
-          MessageGenerate(idDrone, "Paris", date, "regular message", prod)
+          MessageGenerate(idDrone, loc, date, "regular message", prod)
           message += 1
         }
-        RandomMessage(nbr - 1, idDrone, prod)
+        Thread.sleep(1000)
+        RandomMessage(nbr - 1, idsDrone, prod)
+      }
+    }
+  }
+
+  def RandomMessage2(nbr: Int, idDrone: String, prod: KafkaProducer[String,String]): Any = {
+    nbr match {
+      case 0 => {
+        println("violation: ", violation)
+        println("alert: ", alert)
+        println("message: ", message)
+      }
+      case _ => {
+        val date = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(LocalDateTime.now())
+        val randomType = nextInt(100)
+        val loc = addressList(nextInt(addressList.length))
+        if (randomType < 25) {
+          val typeAlert = nextInt(100)
+          if (typeAlert == 0) {
+            MessageGenerate(idDrone, loc, date, "alert", prod)
+            alert += 1
+          }
+          else {
+            MessageGenerate(idDrone, loc, date, "violation", prod)
+            violation += 1
+          }
+        }
+        else {
+          MessageGenerate(idDrone, loc, date, "regular message", prod)
+          message += 1
+        }
+        Thread.sleep(1000)
+        RandomMessage2(nbr - 1, idDrone, prod)
       }
     }
   }
