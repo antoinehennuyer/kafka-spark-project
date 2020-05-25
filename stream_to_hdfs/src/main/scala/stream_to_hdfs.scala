@@ -49,7 +49,7 @@ object stream_to_hdfs {
       .read
         .format("kafka")
       .option("kafka.bootstrap.servers", "localhost:9092")
-      .option("subscribe", "atopic")
+      .option("subscribe", "general")
       .load()
 
 
