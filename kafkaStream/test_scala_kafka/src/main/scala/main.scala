@@ -48,7 +48,7 @@ object main {
     
     Prod.close()
 
-    streams.close()
+    //streams.close()
 
 
   }

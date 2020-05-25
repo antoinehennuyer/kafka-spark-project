@@ -61,7 +61,7 @@ object stream_to_hdfs {
       .add("violation_code",DataTypes.StringType)
 
     val valuedf = JsonDf.select(from_json($"value", struct).as("value"))
-    val valuesplit = valuedf.selectExpr("value.ID", "value.location","value.time","value.violcation_code")
+    val valuesplit = valuedf.selectExpr("value.ID", "value.location","value.time","value.violation_code")
     valuesplit.write.format("csv").save("test.csv")
     //valuesplit.show(20)
 
