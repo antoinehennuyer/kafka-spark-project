@@ -19,7 +19,7 @@ object alertHandler {
     consumerConfiguration.put("group.id", "consumer-group")
 
     val consumer: KafkaConsumer[String, String] = new KafkaConsumer[String, String](consumerConfiguration)
-    consumer.subscribe(util.Arrays.asList("alert"))
+    consumer.subscribe(util.Arrays.asList("atopic"))
     consumer
   }
 
