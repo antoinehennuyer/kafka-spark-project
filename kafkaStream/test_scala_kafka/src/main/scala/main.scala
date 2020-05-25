@@ -24,7 +24,7 @@ object main {
 
     val builder = new StreamsBuilder()
     val text = builder.stream[String,String]("general")
-    val alert = text.filter((x,v) => Json.parse(v).\("ID").as[JsString].value == "12") // TODO Modify the condition
+    val alert = text.filter((x,v) => Json.parse(v).\("violation_code").as[JsString].value == "alert") // TODO Modify the condition
     //val uppercase = text.mapValues(x => Json.parse(x)).mapValues(x => x.\("ID"))
     //print(uppercase.mapValues(x => print(x)))
     alert.to("alert") // TODO Change to alert topic
@@ -38,13 +38,13 @@ object main {
     props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer])
     props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer])
     val Prod : KafkaProducer[String,String] = new KafkaProducer[String,String](props)
-    val JSON = Json.obj("ID"->JsString("12"),"location"->JsString("43 rue de new york"))
-    val JSON2 = Json.obj("ID"->JsString("51"),"location"->JsString("1 rue de France"))
+    val JSON = Json.obj("ID"->JsString("12"),"location"->JsString("43 rue de new york"), "time"->JsString("2019-01-01 13:40"), "violation_code"-> JsString("alert"))
+    val JSON2 = Json.obj("ID"->JsString("51"),"location"->JsString("1 rue de France"), "time"->JsString("2019-01-01 13:40"), "violation_code"-> JsString("regular"))
 
     val record = new ProducerRecord[String,String]("general","key",JSON.toString())
-    Prod.send(record)
+    //Prod.send(record)
     val rec2 = new ProducerRecord[String,String]("general","key2",JSON2.toString())
-    Prod.send(rec2)
+    //Prod.send(rec2)
     
     Prod.close()
 

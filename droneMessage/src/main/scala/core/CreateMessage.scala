@@ -9,21 +9,29 @@ import scala.util.Random
 import Random.nextInt
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.clients.producer.ProducerConfig
+import org.apache.kafka.clients.producer.KafkaProducer
+import org.apache.kafka.common.serialization.StringSerializer
+import java.util.Properties
+import play.api.libs.json._
 
 object CreateMessage {
   var violation = 0
   var alert = 0
   var message = 0
 
-  def CreateDronesMessages(nbrDrone: Int, nbrMessage: Int): Unit = {
+  def CreateDronesMessages(nbrDrone: Int, nbrMessage: Int): Any = {
+    val prod = initiateProducer()
     val res = Stream.continually(Random.alphanumeric.filter(_.isDigit).take(5).mkString).take(nbrDrone)
     res.foreach(elt => {
-      RandomMessage(nbrMessage, elt) // TODO: Make it async
+      RandomMessage(nbrMessage, elt, prod) // TODO: Make it async
     })
+    prod.close()
 
   }
 
-  def RandomMessage(nbr: Int, idDrone: String): Any = {
+  def RandomMessage(nbr: Int, idDrone: String, prod: KafkaProducer[String,String]): Any = {
     nbr match {
       case 0 => {
         println("violation: ", violation)
@@ -37,27 +45,43 @@ object CreateMessage {
         if (randomType < 25) {
           val typeAlert = nextInt(100)
           if (typeAlert == 0) {
-            val newMessage = MessageGenerate(idDrone, "Paris", date, "alert")
-            println(newMessage)
+            MessageGenerate(idDrone, "Paris", date, "alert", prod)
             alert += 1
           }
           else {
-            val newMessage = MessageGenerate(idDrone, "Paris", date, "violation")
-            println(newMessage)
+            MessageGenerate(idDrone, "Paris", date, "violation", prod)
             violation += 1
           }
         }
         else {
-          val newMessage = MessageGenerate(idDrone, "Paris", date, "regularly message")
-          println(newMessage)
+          MessageGenerate(idDrone, "Paris", date, "regular message", prod)
           message += 1
         }
-        RandomMessage(nbr - 1, idDrone)
+        RandomMessage(nbr - 1, idDrone, prod)
       }
     }
   }
 
-  def MessageGenerate(id: String, loc: String, time: String, vioCode: String): Message = {
-    MessageUtils.Message(id, loc, time, vioCode)
+  def MessageGenerate(id: String, loc: String, time: String, vioCode: String, prod: KafkaProducer[String,String]): Any = {
+    val msg = MessageUtils.Message(id, loc, time, vioCode)
+    println(msg)
+    sendMessage(msg, prod)
   }
+  def sendMessage(msg : MessageUtils.Message, prod: KafkaProducer[String,String]): Any = {
+    val JSON = Json.obj("ID"->JsString(msg.id), "location"->JsString(msg.location), "time"->JsString(msg.time), "violation_code"->JsString(msg.violationCode))
+    val record = new ProducerRecord[String,String]("general",msg.id + "key",JSON.toString())
+    prod.send(record)
+    println("msg sent")
+  }
+  def initiateProducer(): KafkaProducer[String,String] = {
+    val props: Properties = new Properties()
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
+    props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer])
+    props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer])
+    val prod : KafkaProducer[String,String] = new KafkaProducer[String,String](props)
+    prod
+
+  }
+
+
 }

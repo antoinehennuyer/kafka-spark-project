@@ -17,7 +17,7 @@ object alertHandler {
     consumerConfiguration.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
     consumerConfiguration.put("auto.offset.reset", "latest")
     consumerConfiguration.put("group.id", "consumer-group")
-    consumerConfiguration.put("max.poll.records", 100)
+    //consumerConfiguration.put("max.poll.records", 100)
 
     val consumer: KafkaConsumer[String, String] = new KafkaConsumer[String, String](consumerConfiguration)
     consumer.subscribe(util.Arrays.asList("alert"))
@@ -41,7 +41,7 @@ object alertHandler {
         println("offset", record.offset())
         producer.send(new ProducerRecord[String,String]("general",record.key(),
           Json.obj("ID"->JsString(Json.parse(record.value()).\("ID").as[JsString].value),
-            "location"->JsString("Changed by alert topic")).toString()))
+            "location"->JsString(Json.parse(record.value()).\("location").as[JsString].value), "time" ->JsString(Json.parse(record.value()).\("time").as[JsString].value), "violation_code"->JsString("ALERT RESOLVED")).toString()))
       }
     }
     producer.close()
