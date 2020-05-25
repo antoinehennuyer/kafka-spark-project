@@ -52,12 +52,16 @@ object stream_to_hdfs {
       .option("subscribe", "atopic")
       .load()
 
+
     val JsonDf = df.selectExpr("CAST(value AS STRING)")
     val struct = new StructType()
       .add("ID", DataTypes.StringType)
       .add("location", DataTypes.StringType)
+      .add("time",DataTypes.StringType)
+      .add("violation_code",DataTypes.StringType)
+
     val valuedf = JsonDf.select(from_json($"value", struct).as("value"))
-    val valuesplit = valuedf.selectExpr("value.ID", "value.location")
+    val valuesplit = valuedf.selectExpr("value.ID", "value.location","value.time","value.violcation_code")
     valuesplit.write.format("csv").save("test.csv")
     //valuesplit.show(20)
 
