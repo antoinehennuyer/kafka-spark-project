@@ -1,5 +1,7 @@
 import java.util
 
+import scala.util.Random
+import Random.nextInt
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
@@ -24,6 +26,15 @@ object alertHandler {
     consumer
   }
 
+  def chooseSolve(): String = {
+    val rand = nextInt(100)
+    if (rand < 50) {
+      "regular message"
+    }
+    else{
+      "violation"
+    }
+  }
   def initAlertProducer(): KafkaProducer[String,String] = {
     val producerConfiguration = new util.Properties()
     producerConfiguration.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
@@ -37,13 +48,15 @@ object alertHandler {
     val producer: KafkaProducer[String,String] = initAlertProducer()
     while (true) {
       val records = consumer.poll(5000).asScala
+      val res = chooseSolve() 
       records.foreach { record =>
         println("offset", record.offset())
+
         producer.send(new ProducerRecord[String,String]("general",record.key(),
           Json.obj("ID"->JsString(Json.parse(record.value()).\("ID").as[JsString].value),
             "location"->JsString(Json.parse(record.value()).\("location").as[JsString].value),
             "time" ->JsString(Json.parse(record.value()).\("time").as[JsString].value),
-            "violation_code"->JsString("ALERT RESOLVED"),
+            "violation_code"->JsString(res),
             "state"->JsString(Json.parse(record.value()).\("state").as[JsString].value),
             "vehiculeMake"->JsString(Json.parse(record.value()).\("vehiculeMake").as[JsString].value),
             "batteryPercent"->JsString(Json.parse(record.value()).\("batteryPercent").as[JsString].value),
