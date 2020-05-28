@@ -20,7 +20,7 @@ object alertHandler {
     //consumerConfiguration.put("max.poll.records", 100)
 
     val consumer: KafkaConsumer[String, String] = new KafkaConsumer[String, String](consumerConfiguration)
-    consumer.subscribe(util.Arrays.asList("atopic"))
+    consumer.subscribe(util.Arrays.asList("alert"))
     consumer
   }
 
@@ -36,12 +36,21 @@ object alertHandler {
     val consumer: KafkaConsumer[String, String] = initAlertConsumer()
     val producer: KafkaProducer[String,String] = initAlertProducer()
     while (true) {
-      val records = consumer.poll(10000).asScala
+      val records = consumer.poll(5000).asScala
       records.foreach { record =>
         println("offset", record.offset())
         producer.send(new ProducerRecord[String,String]("general",record.key(),
           Json.obj("ID"->JsString(Json.parse(record.value()).\("ID").as[JsString].value),
-            "location"->JsString(Json.parse(record.value()).\("location").as[JsString].value), "time" ->JsString(Json.parse(record.value()).\("time").as[JsString].value), "violation_code"->JsString("ALERT RESOLVED")).toString()))
+            "location"->JsString(Json.parse(record.value()).\("location").as[JsString].value),
+            "time" ->JsString(Json.parse(record.value()).\("time").as[JsString].value),
+            "violation_code"->JsString("ALERT RESOLVED"),
+            "state"->JsString(Json.parse(record.value()).\("state").as[JsString].value),
+            "vehiculeMake"->JsString(Json.parse(record.value()).\("vehiculeMake").as[JsString].value),
+            "batteryPercent"->JsString(Json.parse(record.value()).\("batteryPercent").as[JsString].value),
+            "temperatureDrone"->JsString(Json.parse(record.value()).\("temperatureDrone").as[JsString].value),
+            "mType"->JsString(Json.parse(record.value()).\("mType").as[JsString].value)
+            )
+              .toString()))
       }
     }
     producer.close()

@@ -59,10 +59,15 @@ object stream_to_hdfs {
       .add("location", DataTypes.StringType)
       .add("time",DataTypes.StringType)
       .add("violation_code",DataTypes.StringType)
+      .add("state", DataTypes.StringType)
+      .add("vehiculeMake", DataTypes.StringType)
+      .add("batteryPercent", DataTypes.StringType)
+      .add("temperatureDrone", DataTypes.StringType)
+      .add("mType", DataTypes.StringType)
 
     val valuedf = JsonDf.select(from_json($"value", struct).as("value"))
-    val valuesplit = valuedf.selectExpr("value.ID", "value.location","value.time","value.violation_code")
-    valuesplit.write.format("csv").save("test.csv")
+    val valuesplit = valuedf.selectExpr("value.ID", "value.location","value.time","value.violation_code", "value.state", "value.vehiculeMake", "value.batteryPercent", "value.temperatureDrone", "value.mType")
+    valuesplit.write.format("csv").option("header", "true").save("test.csv")
     //valuesplit.show(20)
 
     //personJsonDf.show(20)

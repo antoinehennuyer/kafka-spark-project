@@ -112,12 +112,17 @@ object CreateMessage {
   }
 
   def MessageGenerate(id: String, loc: String, time: String, vioCode: String, prod: KafkaProducer[String,String]): Any = {
-    val msg = MessageUtils.Message(id, loc, time, vioCode)
+    val msg = MessageUtils.Message(id, loc, time, vioCode, "", "", "","","DRO")
     println(msg)
     sendMessage(msg, prod)
   }
   def sendMessage(msg : MessageUtils.Message, prod: KafkaProducer[String,String]): Any = {
-    val JSON = Json.obj("ID"->JsString(msg.id), "location"->JsString(msg.location), "time"->JsString(msg.time), "violation_code"->JsString(msg.violationCode))
+    val JSON = Json.obj("ID"->JsString(msg.id), "location"->JsString(msg.location),
+      "time"->JsString(msg.time), "violation_code"->JsString(msg.violationCode),
+      "state"->JsString(""), "vehiculeMake"-> JsString(""),
+      "batteryPercent"->JsString(msg.batteryPercent),
+      "temperatureDrone"-> JsString(msg.temperatureDrone),
+      "mType"->JsString(msg.mType))
     val record = new ProducerRecord[String,String]("general",msg.id + "key",JSON.toString())
     prod.send(record)
     println("msg sent")

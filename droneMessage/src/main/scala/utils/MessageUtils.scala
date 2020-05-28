@@ -5,7 +5,12 @@ object MessageUtils {
                      id : String,
                      location: String,
                      time: String,
-                     violationCode: String
+                     violationCode: String,
+                     state: String,
+                     vehiculeMake: String,
+                     batteryPercent: String,
+                     temperatureDrone: String,
+                     mType: String,
                      )
 
 
