@@ -4,7 +4,7 @@ import java.util.Properties
 
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig, ProducerRecord}
 import org.apache.kafka.common.serialization.StringSerializer
-import play.api.libs.json.{JsString, Json}
+//import play.api.libs.json.{JsString, Json}
 import utils.MessageUtils
 import org.apache.spark
 import org.apache.spark.SparkConf
@@ -13,50 +13,26 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.types.{DataTypes, DoubleType, IntegerType, StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.functions._
-
+import play.api.libs.json._
 import scala.util.Random
+import scala.io.Source
 
 object send_nypd {
 
 
-
   def CreateNypdMessages(): Any = {
-    val (prod,spark) = initiateProducer()
-    val nypdCsv = spark.read.format("csv")
-      .option("sep", ";")
-      .option("inferSchema", "true")
-      .option("header", "true")
-      .load(".")
-
-//    val struct = new StructType()
-//      .add("ID", DataTypes.StringType)
-//      .add("location", DataTypes.StringType)
-//      .add("time",DataTypes.StringType)
-//      .add("violation_code",DataTypes.StringType)
-//      .add("state", DataTypes.StringType)
-//      .add("vehiculeMake", DataTypes.StringType)
-//      .add("batteryPercent", DataTypes.StringType)
-//      .add("temperatureDrone", DataTypes.StringType)
-//      .add("mType", DataTypes.StringType)
-
-    import spark.implicits._
-
-    val valuedf = nypdCsv.select("Violation Location","Violation Time","Violation Code","Violation County")
-
-    valuedf.foreach { line =>
-
-      val loc = line.mkString(",").split(",")(0)
-      val time = line.mkString(",").split(",")(1)
-      val vioCode = line.mkString(",").split(",")(2)
-      MessageGenerate("NA",loc,time,vioCode,prod)
-    }
+    val prod = initiateProducer()
+    val idx = List(0,1,2)
+    //val nypdCsv = spark.read.option("header", "true").csv("Parking_Violations_Issued_-_Fiscal_Year_2017.csv").toDF()
+    val nypdCsv = Source.fromFile("Parking_Violations_Issued_-_Fiscal_Year_2017.csv").getLines.map(_.split(",").toList)
+    nypdCsv.map(x => List(x(2),x(4),x(5),x(7),x(24)))
+   nypdCsv.foreach(line => MessageGenerate("NA",line(4),line(2),line(2),prod))
 
     prod.close()
   }
 
   def MessageGenerate(id: String, loc: String, time: String, vioCode: String, prod: KafkaProducer[String,String]): Any = {
     val msg = MessageUtils.Message(id, loc, time, vioCode, "", "", "","","NYPD")
-    println(msg)
     sendMessage(msg, prod)
   }
 
@@ -69,24 +45,15 @@ object send_nypd {
       "mType"->JsString(msg.mType))
     val record = new ProducerRecord[String,String]("sendCsv",msg.id + "key",JSON.toString())
     prod.send(record)
-    println("msg sent")
   }
 
-  def initiateProducer(): Tuple2[KafkaProducer[String,String],SparkSession] = {
+  def initiateProducer(): KafkaProducer[String,String] = {
     val props: Properties = new Properties()
     props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
     props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer])
     props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer])
     val prod : KafkaProducer[String,String] = new KafkaProducer[String,String](props)
-
-    val spark = SparkSession
-      .builder
-      .appName("Spark-Kafka-Integration")
-      .master("local")
-      .getOrCreate()
-
-    (prod,spark)
+    prod
   }
-
 
 }

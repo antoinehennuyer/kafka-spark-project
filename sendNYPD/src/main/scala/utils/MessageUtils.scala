@@ -10,6 +10,6 @@ object MessageUtils {
                        vehiculeMake: String,
                        batteryPercent: String,
                        temperatureDrone: String,
-                       mType: String,
+                       mType: String
                      )
 }
