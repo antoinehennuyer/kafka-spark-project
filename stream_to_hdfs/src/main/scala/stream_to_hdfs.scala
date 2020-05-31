@@ -7,7 +7,7 @@ import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
 import java.text.SimpleDateFormat
 import java.util.Calendar
-
+import org.apache.spark.sql.streaming.Trigger
 import scala.concurrent.duration.Duration
 
 object stream_to_hdfs {
@@ -18,13 +18,12 @@ object stream_to_hdfs {
     val date = format.format(Calendar.getInstance().getTime())
     // CODE SAVE DRONE MSG
     val df = spark
-      .read
+      .readStream
       .format("kafka")
       .option("kafka.bootstrap.servers", "localhost:9092")
       .option("subscribe", "general")
+      .option("startingOffsets","earliest")
       .load()
-    if (df.count() != 0)
-    {
     val JsonDf = df.selectExpr("CAST(value AS STRING)")
     val struct = new StructType()
       .add("ID", DataTypes.StringType)
@@ -38,20 +37,21 @@ object stream_to_hdfs {
       .add("mType", DataTypes.StringType)
 
     val valuedf = JsonDf.select(from_json($"value", struct).as("value"))
+    //print(valuedf)
     val valuesplit = valuedf.selectExpr("value.ID", "value.location","value.time","value.violation_code",
       "value.state", "value.vehiculeMake", "value.batteryPercent", "value.temperatureDrone", "value.mType")
-    valuesplit.write.format("csv").option("header", "true").save("drone_save/drone-" + date+ ".csv")
-    }
+    val query = valuesplit.writeStream.format("csv").option("header", "true").trigger(Trigger.Once).option("checkpointLocation","checkpoint").start("drone_save/drone-"+date+".csv")
+    query.awaitTermination()
 
 // CODE SAVE CSV NYPD
-    val dfCsv = spark
-      .read
+
+  val dfCsv = spark
+      .readStream
       .format("kafka")
       .option("kafka.bootstrap.servers", "localhost:9092")
       .option("subscribe", "sendCSV")
+      .option("startingOffsets","earliest")
       .load()
-    if (dfCsv.count() != 0)
-    {
     val JsonDfCsv = dfCsv.selectExpr("CAST(value AS STRING)")
     val structCsv = new StructType()
       .add("ID", DataTypes.StringType)
@@ -67,8 +67,8 @@ object stream_to_hdfs {
     val valuedfCsv = JsonDfCsv.select(from_json($"value", structCsv).as("value"))
     val valuesplitCsv = valuedfCsv.selectExpr("value.ID", "value.location","value.time","value.violation_code",
       "value.state", "value.vehiculeMake", "value.batteryPercent", "value.temperatureDrone", "value.mType")
-    valuesplitCsv.write.format("csv").option("header", "true").save("csv_save/CSVFile-"+date+".csv")
-    }
+    val querycsv = valuesplitCsv.writeStream.format("csv").option("header", "true").trigger(Trigger.Once).option("checkpointLocation","checkpoint").start("drone_save/CSVFile-"+date+".csv")
+      querycsv.awaitTermination()
   }
 
   def main(args: Array[String]) {
