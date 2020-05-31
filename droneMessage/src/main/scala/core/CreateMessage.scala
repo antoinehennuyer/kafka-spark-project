@@ -58,19 +58,22 @@ object CreateMessage {
         val randomType = nextInt(100)
         val idDrone = idsDrone(nextInt(idsDrone.length))
         val loc = addressList(nextInt(addressList.length))
+        val battery = (nextInt(100) + 1).toString
+        val temp = (nextInt(31) + 20).toString
         if (randomType < 25) {
           val typeAlert = nextInt(100)
           if (typeAlert == 0) {
-            MessageGenerate(idDrone, loc, date, "alert", prod)
+            MessageGenerate(idDrone, loc, date, "102", battery, temp, prod)
             alert += 1
           }
           else {
-            MessageGenerate(idDrone, loc, date, "violation", prod)
+            val viola = (nextInt(100) + 1).toString
+            MessageGenerate(idDrone, loc, date, viola, battery, temp, prod)
             violation += 1
           }
         }
         else {
-          MessageGenerate(idDrone, loc, date, "regular message", prod)
+          MessageGenerate(idDrone, loc, date, "101", battery, temp, prod)
           message += 1
         }
         Thread.sleep(1000)
@@ -90,19 +93,22 @@ object CreateMessage {
         val date = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(LocalDateTime.now())
         val randomType = nextInt(100)
         val loc = addressList(nextInt(addressList.length))
+        val battery = (nextInt(100) + 1).toString
+        val temp = (nextInt(31) + 20).toString
         if (randomType < 25) {
           val typeAlert = nextInt(100)
           if (typeAlert == 0) {
-            MessageGenerate(idDrone, loc, date, "alert", prod)
+            MessageGenerate(idDrone, loc, date, "102", battery, temp, prod)
             alert += 1
           }
           else {
-            MessageGenerate(idDrone, loc, date, "violation", prod)
+            val viola = (nextInt(100) + 1).toString
+            MessageGenerate(idDrone, loc, date, viola, battery, temp, prod)
             violation += 1
           }
         }
         else {
-          MessageGenerate(idDrone, loc, date, "regular message", prod)
+          MessageGenerate(idDrone, loc, date, "101", battery, temp, prod)
           message += 1
         }
         Thread.sleep(1000)
@@ -111,8 +117,8 @@ object CreateMessage {
     }
   }
 
-  def MessageGenerate(id: String, loc: String, time: String, vioCode: String, prod: KafkaProducer[String,String]): Any = {
-    val msg = MessageUtils.Message(id, loc, time, vioCode, "", "", "","","DRO")
+  def MessageGenerate(id: String, loc: String, time: String, vioCode: String, battery: String, temp: String, prod: KafkaProducer[String,String]): Any = {
+    val msg = MessageUtils.Message(id, loc, time, vioCode, "", "", battery, temp, "DRO")
     println(msg)
     sendMessage(msg, prod)
   }
@@ -123,8 +129,8 @@ object CreateMessage {
       "batteryPercent"->JsString(msg.batteryPercent),
       "temperatureDrone"-> JsString(msg.temperatureDrone),
       "mType"->JsString(msg.mType))
-    val record = new ProducerRecord[String,String]("general",msg.id + "key",JSON.toString())
-    prod.send(record)
+    // val record = new ProducerRecord[String,String]("general",msg.id + "key",JSON.toString())
+    // prod.send(record)
     println("msg sent")
   }
   def initiateProducer(): KafkaProducer[String,String] = {
