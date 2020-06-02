@@ -129,8 +129,8 @@ object CreateMessage {
       "batteryPercent"->JsString(msg.batteryPercent),
       "temperatureDrone"-> JsString(msg.temperatureDrone),
       "mType"->JsString(msg.mType))
-    // val record = new ProducerRecord[String,String]("general",msg.id + "key",JSON.toString())
-    // prod.send(record)
+      val record = new ProducerRecord[String,String]("general",msg.id + "key",JSON.toString())
+      prod.send(record)
     println("msg sent")
   }
   def initiateProducer(): KafkaProducer[String,String] = {

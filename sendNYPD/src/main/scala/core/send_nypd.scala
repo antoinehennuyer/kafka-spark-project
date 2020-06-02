@@ -42,7 +42,7 @@ object send_nypd {
       "batteryPercent"->JsString(msg.batteryPercent),
       "temperatureDrone"-> JsString(msg.temperatureDrone),
       "mType"->JsString(msg.mType))
-    val record = new ProducerRecord[String,String]("sendCsv",msg.id + "key",JSON.toString())
+    val record = new ProducerRecord[String,String]("general",msg.id + "key",JSON.toString())
     prod.send(record)
   }
 

@@ -24,7 +24,7 @@ object main {
 
     val builder = new StreamsBuilder()
     val text = builder.stream[String,String]("general")
-    val alert = text.filter((x,v) => Json.parse(v).\("violation_code").as[JsString].value == "alert") // TODO Modify the condition
+    val alert = text.filter((x,v) => Json.parse(v).\("violation_code").as[JsString].value == "102") // TODO Modify the condition
     //val uppercase = text.mapValues(x => Json.parse(x)).mapValues(x => x.\("ID"))
     //print(uppercase.mapValues(x => print(x)))
     alert.to("alert") // TODO Change to alert topic

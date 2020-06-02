@@ -29,10 +29,14 @@ object alertHandler {
   def chooseSolve(): String = {
     val rand = nextInt(100)
     if (rand < 50) {
-      "regular message"
+      val r = 1 + nextInt(99)
+      print("Alert detected and 1 police officer changed it to the code: " + r.toString() + "\n")
+      r.toString()
     }
     else{
-      "violation"
+      
+      print("Alert detected and 1 police officer changed it to the code: 101\n")
+      "101"
     }
   }
   def initAlertProducer(): KafkaProducer[String,String] = {
@@ -47,11 +51,10 @@ object alertHandler {
     val consumer: KafkaConsumer[String, String] = initAlertConsumer()
     val producer: KafkaProducer[String,String] = initAlertProducer()
     while (true) {
-      val records = consumer.poll(5000).asScala
-      val res = chooseSolve() 
+      val records = consumer.poll(5000).asScala 
       records.foreach { record =>
         println("offset", record.offset())
-
+        val res = chooseSolve() 
         producer.send(new ProducerRecord[String,String]("general",record.key(),
           Json.obj("ID"->JsString(Json.parse(record.value()).\("ID").as[JsString].value),
             "location"->JsString(Json.parse(record.value()).\("location").as[JsString].value),
