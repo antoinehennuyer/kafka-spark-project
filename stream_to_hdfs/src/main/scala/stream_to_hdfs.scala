@@ -57,19 +57,6 @@ object stream_to_hdfs {
       .master("local")
       .getOrCreate()
 
-    import spark.implicits._
-
-
-    //CODE FOR CONSUMER CSV
-    val actorSystem = ActorSystem()
-    val scheduler = actorSystem.scheduler
-    val task = new Runnable { def run() { saveCsv(spark) } }
-    implicit val executor = actorSystem.dispatcher
-
-    scheduler.schedule(
-      initialDelay = Duration(0, TimeUnit.SECONDS),
-      interval = Duration(5, TimeUnit.SECONDS),
-      runnable = task)
-   //saveCsv(spark)
+    saveCsv(spark)
   }
 }
