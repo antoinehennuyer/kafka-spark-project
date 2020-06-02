@@ -1,4 +1,5 @@
 import java.util
+import java.util.concurrent.TimeUnit
 
 import scala.util.Random
 import Random.nextInt
@@ -7,8 +8,11 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.StringSerializer
-import play.api.libs.json._
+
 import scala.collection.JavaConverters._
+import scala.concurrent.duration.Duration
+import akka.actor.ActorSystem
+import play.api.libs.json.{JsString, Json}
 
 object alertHandler {
   def initAlertConsumer(): KafkaConsumer[String, String] = {
@@ -19,7 +23,6 @@ object alertHandler {
     consumerConfiguration.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
     consumerConfiguration.put("auto.offset.reset", "latest")
     consumerConfiguration.put("group.id", "consumer-group")
-    //consumerConfiguration.put("max.poll.records", 100)
 
     val consumer: KafkaConsumer[String, String] = new KafkaConsumer[String, String](consumerConfiguration)
     consumer.subscribe(util.Arrays.asList("alert"))
@@ -47,31 +50,39 @@ object alertHandler {
     new KafkaProducer[String,String](producerConfiguration)
   }
 
+  def sendRecords(consumer: KafkaConsumer[String, String], producer: KafkaProducer[String,String]) = {
+    val records = consumer.poll(5000).asScala
+    records.foreach { record =>
+      println("offset", record.offset())
+      val res = chooseSolve()
+      producer.send(new ProducerRecord[String,String]("general",record.key(),
+        Json.obj("ID"->JsString(Json.parse(record.value()).\("ID").as[JsString].value),
+          "location"->JsString(Json.parse(record.value()).\("location").as[JsString].value),
+          "time" ->JsString(Json.parse(record.value()).\("time").as[JsString].value),
+          "violation_code"->JsString(res),
+          "state"->JsString(Json.parse(record.value()).\("state").as[JsString].value),
+          "vehiculeMake"->JsString(Json.parse(record.value()).\("vehiculeMake").as[JsString].value),
+          "batteryPercent"->JsString(Json.parse(record.value()).\("batteryPercent").as[JsString].value),
+          "temperatureDrone"->JsString(Json.parse(record.value()).\("temperatureDrone").as[JsString].value),
+          "mType"->JsString(Json.parse(record.value()).\("mType").as[JsString].value)
+        ).toString()))
+    }
+  }
+
   def main(args: Array[String]): Unit = {
     val consumer: KafkaConsumer[String, String] = initAlertConsumer()
     val producer: KafkaProducer[String,String] = initAlertProducer()
-    while (true) {
-      val records = consumer.poll(5000).asScala 
-      records.foreach { record =>
-        println("offset", record.offset())
-        val res = chooseSolve() 
-        producer.send(new ProducerRecord[String,String]("general",record.key(),
-          Json.obj("ID"->JsString(Json.parse(record.value()).\("ID").as[JsString].value),
-            "location"->JsString(Json.parse(record.value()).\("location").as[JsString].value),
-            "time" ->JsString(Json.parse(record.value()).\("time").as[JsString].value),
-            "violation_code"->JsString(res),
-            "state"->JsString(Json.parse(record.value()).\("state").as[JsString].value),
-            "vehiculeMake"->JsString(Json.parse(record.value()).\("vehiculeMake").as[JsString].value),
-            "batteryPercent"->JsString(Json.parse(record.value()).\("batteryPercent").as[JsString].value),
-            "temperatureDrone"->JsString(Json.parse(record.value()).\("temperatureDrone").as[JsString].value),
-            "mType"->JsString(Json.parse(record.value()).\("mType").as[JsString].value)
-            )
-              .toString()))
-      }
-    }
+
+    val actorSystem = ActorSystem()
+    val scheduler = actorSystem.scheduler
+    val task = new Runnable { def run() { sendRecords(consumer, producer) } }
+    implicit val executor = actorSystem.dispatcher
+
+    scheduler.schedule(
+      initialDelay = Duration(0, TimeUnit.SECONDS),
+      interval = Duration(10, TimeUnit.SECONDS),
+      runnable = task)
+
     producer.close()
-    consumer.close()
-    //COMMENT KILL MESSAGE
-    // COMMENT VIDER CLOSE
   }
 }
