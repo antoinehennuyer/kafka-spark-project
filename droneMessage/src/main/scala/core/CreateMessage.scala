@@ -136,7 +136,7 @@ object CreateMessage {
       "imageId"->JsString(msg.imageId))
     println(JSON.toString())
       val record = new ProducerRecord[String,String]("general",msg.id + "key",JSON.toString())
-      // prod.send(record)
+      prod.send(record)
     println("msg sent")
   }
 

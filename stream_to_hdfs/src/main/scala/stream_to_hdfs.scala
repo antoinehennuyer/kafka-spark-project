@@ -25,6 +25,7 @@ object stream_to_hdfs {
       .option("subscribe", "general")
       .option("startingOffsets","earliest")
       .load()
+
     val JsonDfCsv = dfCsv.selectExpr("CAST(value AS STRING)")
     val structCsv = new StructType()
       .add("ID", DataTypes.StringType)
@@ -59,5 +60,6 @@ object stream_to_hdfs {
       .getOrCreate()
 
     saveCsv(spark)
+    spark.close()
   }
 }
