@@ -40,7 +40,7 @@ object stream_to_hdfs {
 
     val valuedfCsv = JsonDfCsv.select(from_json($"value", structCsv).as("value"))
     val valuesplitCsv = valuedfCsv.selectExpr("value.ID", "value.location","value.time","value.violation_code",
-      "value.state", "value.vehiculeMake", "value.batteryPercent", "value.temperatureDrone", "value.mType")
+      "value.state", "value.vehiculeMake", "value.batteryPercent", "value.temperatureDrone", "value.mType","value.imageId")
     val querycsv = valuesplitCsv.writeStream.format("csv")
       .option("header", "true")
       .trigger(Trigger.Once)
