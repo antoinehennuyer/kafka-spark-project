@@ -11,6 +11,7 @@ object MessageUtils {
                      batteryPercent: String,
                      temperatureDrone: String,
                      mType: String,
+                     imageId: String,
                      )
 
 

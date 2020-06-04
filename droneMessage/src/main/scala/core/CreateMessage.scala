@@ -63,17 +63,19 @@ object CreateMessage {
         if (randomType < 25) {
           val typeAlert = nextInt(100)
           if (typeAlert == 0) {
-            MessageGenerate(idDrone, loc, date, "102", battery, temp, prod)
+            MessageGenerate(idDrone, loc, date, "102", battery, temp, "", prod)
             alert += 1
           }
           else {
             val viola = (nextInt(100) + 1).toString
-            MessageGenerate(idDrone, loc, date, viola, battery, temp, prod)
+            val imageId = Random.alphanumeric.filter(_.isDigit).take(5).mkString
+            println("teststeset", imageId)
+            MessageGenerate(idDrone, loc, date, viola, battery, temp, imageId, prod)
             violation += 1
           }
         }
         else {
-          MessageGenerate(idDrone, loc, date, "101", battery, temp, prod)
+          MessageGenerate(idDrone, loc, date, "101", battery, temp, "", prod)
           message += 1
         }
         Thread.sleep(1000)
@@ -98,17 +100,18 @@ object CreateMessage {
         if (randomType < 25) {
           val typeAlert = nextInt(100)
           if (typeAlert == 0) {
-            MessageGenerate(idDrone, loc, date, "102", battery, temp, prod)
+            MessageGenerate(idDrone, loc, date, "102", battery, temp, "", prod)
             alert += 1
           }
           else {
             val viola = (nextInt(100) + 1).toString
-            MessageGenerate(idDrone, loc, date, viola, battery, temp, prod)
+            val imageId = Random.alphanumeric.filter(_.isDigit).take(5).mkString
+            MessageGenerate(idDrone, loc, date, viola, battery, temp, imageId, prod)
             violation += 1
           }
         }
         else {
-          MessageGenerate(idDrone, loc, date, "101", battery, temp, prod)
+          MessageGenerate(idDrone, loc, date, "101", battery, temp, "", prod)
           message += 1
         }
         Thread.sleep(1000)
@@ -117,22 +120,26 @@ object CreateMessage {
     }
   }
 
-  def MessageGenerate(id: String, loc: String, time: String, vioCode: String, battery: String, temp: String, prod: KafkaProducer[String,String]): Any = {
-    val msg = MessageUtils.Message(id, loc, time, vioCode, "", "", battery, temp, "DRO")
+  def MessageGenerate(id: String, loc: String, time: String, vioCode: String, battery: String, temp: String, imageId: String, prod: KafkaProducer[String,String]): Any = {
+    val msg = MessageUtils.Message(id, loc, time, vioCode, "", "", battery, temp, "DRO", imageId)
     println(msg)
     sendMessage(msg, prod)
   }
+
   def sendMessage(msg : MessageUtils.Message, prod: KafkaProducer[String,String]): Any = {
     val JSON = Json.obj("ID"->JsString(msg.id), "location"->JsString(msg.location),
       "time"->JsString(msg.time), "violation_code"->JsString(msg.violationCode),
       "state"->JsString(""), "vehiculeMake"-> JsString(""),
       "batteryPercent"->JsString(msg.batteryPercent),
       "temperatureDrone"-> JsString(msg.temperatureDrone),
-      "mType"->JsString(msg.mType))
+      "mType"->JsString(msg.mType),
+      "imageId"->JsString(msg.imageId))
+    println(JSON.toString())
       val record = new ProducerRecord[String,String]("general",msg.id + "key",JSON.toString())
-      prod.send(record)
+      // prod.send(record)
     println("msg sent")
   }
+
   def initiateProducer(): KafkaProducer[String,String] = {
     val props: Properties = new Properties()
     props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")

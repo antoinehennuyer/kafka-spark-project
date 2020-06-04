@@ -31,7 +31,7 @@ object send_nypd {
   }
 
   def MessageGenerate(id: String, loc: String, time: String, vioCode: String,state: String,v_make:String, prod: KafkaProducer[String,String]): Any = {
-    val msg = MessageUtils.Message(id, loc, time, vioCode,state, v_make, "","","NYP")
+    val msg = MessageUtils.Message(id, loc, time, vioCode,state, v_make, "","","NYP", "")
     sendMessage(msg, prod)
   }
 
@@ -41,7 +41,8 @@ object send_nypd {
       "state"->JsString(msg.state), "vehiculeMake"-> JsString(msg.vehiculeMake),
       "batteryPercent"->JsString(msg.batteryPercent),
       "temperatureDrone"-> JsString(msg.temperatureDrone),
-      "mType"->JsString(msg.mType))
+      "mType"->JsString(msg.mType),
+      "imageId"->JsString(msg.imageId))
     val record = new ProducerRecord[String,String]("general",msg.id + "key",JSON.toString())
     prod.send(record)
   }

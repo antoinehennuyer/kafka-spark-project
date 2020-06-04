@@ -36,6 +36,7 @@ object stream_to_hdfs {
       .add("batteryPercent", DataTypes.StringType)
       .add("temperatureDrone", DataTypes.StringType)
       .add("mType", DataTypes.StringType)
+      .add("imageId", DataTypes.StringType)
 
     val valuedfCsv = JsonDfCsv.select(from_json($"value", structCsv).as("value"))
     val valuesplitCsv = valuedfCsv.selectExpr("value.ID", "value.location","value.time","value.violation_code",

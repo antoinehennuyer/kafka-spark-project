@@ -64,7 +64,8 @@ object alertHandler {
           "vehiculeMake"->JsString(Json.parse(record.value()).\("vehiculeMake").as[JsString].value),
           "batteryPercent"->JsString(Json.parse(record.value()).\("batteryPercent").as[JsString].value),
           "temperatureDrone"->JsString(Json.parse(record.value()).\("temperatureDrone").as[JsString].value),
-          "mType"->JsString(Json.parse(record.value()).\("mType").as[JsString].value)
+          "mType"->JsString(Json.parse(record.value()).\("mType").as[JsString].value),
+          "imageId"->JsString(Json.parse(record.value()).\("imageId").as[JsString].value)
         ).toString()))
     }
   }
