@@ -50,6 +50,7 @@ object stream_to_hdfs {
 
       querycsv.awaitTermination()
       print("Job finished")
+      querycsv.stop()
   }
 
   def main(args: Array[String]) {
