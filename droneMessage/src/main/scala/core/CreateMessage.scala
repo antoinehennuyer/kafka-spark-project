@@ -54,7 +54,7 @@ object CreateMessage {
         println("message: ", message)
       }
       case _ => {
-        val date = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(LocalDateTime.now())
+        val date = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm").format(LocalDateTime.now())
         val randomType = nextInt(100)
         val idDrone = idsDrone(nextInt(idsDrone.length))
         val loc = addressList(nextInt(addressList.length))
