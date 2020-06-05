@@ -8,24 +8,32 @@ import org.apache.spark.sql.functions._
 object analyser{
 
   def main(args: Array[String]): Unit = {
+
+    val file = args(0)
+
     val conf = new SparkConf().setAppName("Analyser").setMaster("local[*]")
     val spark = SparkSession.builder().config(conf).getOrCreate()
     import spark.implicits._
-    val df = spark.read.option("header", "true").csv("Parking_Violations_Issued_-_Fiscal_Year_2017.csv").toDF()
-    // df.show()
+    val df = spark.read.option("header", "true").csv(file).toDF()
     // RUN ANALYSIS HERE
 
-    // val violation = df.groupBy("violation_code").count()
+    // Quelle est la région qui a le plus de contraventions ?
+    val state = df.groupBy("state").count().orderBy(desc("count"))
 
-    val state = df.groupBy("Registration State").count().orderBy(desc("count"))
-    val carType = df.groupBy("Vehicle Make").count().orderBy(desc("count"))
-    val infraction = df.groupBy("Violation Code").count().orderBy(desc("count"))
+    // Quel type de voiture a plus de contraventions ?
+    val carType = df.groupBy("vehiculeMake").count().orderBy(desc("count"))
+
+    // Quelles sont les contraventions les plus fréquentes ?
+    val infraction = df.groupBy("violation_code").count().orderBy(desc("count"))
+
+    // Quels sont les mois où il y a eut le plus de contraventions ?
+    val splitTime = df.withColumn("temp", split(col("time"), "/")).select((0 until 3).map(i => col("temp").getItem(i).as(s"col$i")): _*)
+    val mounth = splitTime.groupBy("col0").count().orderBy(desc("count")).withColumnRenamed("col0", "mounth")
+
     state.show(5)
     carType.show(5)
     infraction.show(5)
-    // violation.where("count > 3").show()
-    // val test = df.filter($"violation_code" === "alert").groupBy("violation_code").count().show()
-    // val violation2 = df.groupBy("violation_code").where("violation_code == test").count().show()
+    mounth.show()
     spark.close()
   }
 
