@@ -84,6 +84,6 @@ object alertHandler {
       interval = Duration(10, TimeUnit.SECONDS),
       runnable = task)
 
-    producer.close()
+    //producer.close()
   }
 }
