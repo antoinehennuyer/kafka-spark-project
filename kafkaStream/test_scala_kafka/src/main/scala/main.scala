@@ -31,22 +31,6 @@ object main {
     val streams = new KafkaStreams(builder.build(), streamConfig)
     streams.start()
 
-    // CODE FOR PRODUCER
-
-    val props: Properties = new Properties()
-    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
-    props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer])
-    props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer])
-    val Prod : KafkaProducer[String,String] = new KafkaProducer[String,String](props)
-    val JSON = Json.obj("ID"->JsString("12"),"location"->JsString("43 rue de new york"), "time"->JsString("2019-01-01 13:40"), "violation_code"-> JsString("alert"))
-    val JSON2 = Json.obj("ID"->JsString("51"),"location"->JsString("1 rue de France"), "time"->JsString("2019-01-01 13:40"), "violation_code"-> JsString("regular"))
-
-    val record = new ProducerRecord[String,String]("general","key",JSON.toString())
-    //Prod.send(record)
-    val rec2 = new ProducerRecord[String,String]("general","key2",JSON2.toString())
-    //Prod.send(rec2)
-    
-    Prod.close()
 
     //streams.close()
 
